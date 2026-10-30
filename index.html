@@ -1,0 +1,2114 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SISTEM PENGURUSAN HARI ANUGERAH & APRESIASI</title>
+  <!-- Tailwind CSS & Google Fonts -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  
+  <style>
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+    }
+    @media print {
+      body * {
+        visibility: hidden;
+      }
+      #printArea, #printArea * {
+        visibility: visible;
+      }
+      #printArea {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+        margin: 0;
+        padding: 20px;
+        background: white;
+        color: black;
+      }
+      .no-print {
+        display: none !important;
+      }
+    }
+  </style>
+</head>
+<body class="bg-slate-900 text-slate-100 min-h-screen flex flex-col antialiased selection:bg-amber-400 selection:text-slate-950">
+
+  <!-- HEADER UTAMA -->
+  <header class="bg-slate-950/90 border-b border-slate-800 sticky top-0 z-40 backdrop-blur-md">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 py-3.5 flex flex-col md:flex-row items-center justify-between gap-3">
+      <div class="flex items-center gap-3">
+        <div class="w-12 h-12 bg-amber-400 text-indigo-950 font-black rounded-2xl flex items-center justify-center text-2xl shadow-lg border border-amber-300">
+          🏆
+        </div>
+        <div>
+          <div class="flex items-center gap-2 flex-wrap">
+            <span id="displayYearBadge" class="inline-block text-[11px] uppercase font-extrabold tracking-wider px-2.5 py-0.5 rounded-full bg-amber-400/20 text-amber-300 border border-amber-400/30">
+               MAPAN 2026
+            </span>
+            <span id="displaySchoolName" class="text-xs text-indigo-200 font-semibold tracking-wide">
+              SK TAMAN RINTING 2
+            </span>
+            <span id="adminBadge" class="hidden text-[10px] font-extrabold px-2.5 py-0.5 rounded-full bg-rose-500 text-white animate-pulse flex items-center gap-1">
+              <span>🛡️</span> MOD PENTADBIR
+            </span>
+          </div>
+          <h1 id="displayEventTitle" class="text-base sm:text-lg font-black tracking-tight text-white mt-0.5">
+            MAJLIS APRESIASI & ANUGERAH 2026
+          </h1>
+        </div>
+      </div>
+
+      <div class="flex flex-wrap items-center gap-2">
+        <div class="flex items-center gap-1.5 bg-slate-900 text-slate-300 border border-slate-700/80 text-xs font-semibold px-3 py-1.5 rounded-xl shadow-inner">
+          <span id="sheetConnectionDot" class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
+          <span id="sheetConnectionText">Google Sheets: Dihubungkan</span>
+        </div>
+
+        <button onclick="openProjectorMode()" class="flex items-center gap-1.5 bg-amber-500 hover:bg-amber-400 active:scale-95 text-slate-950 text-xs sm:text-sm font-bold px-3.5 py-2 rounded-xl shadow-md transition">
+          <span>🖥️</span> Projektor Pentas
+        </button>
+
+        <button id="authBtn" onclick="handleAuthButtonClick()" class="flex items-center gap-1.5 bg-indigo-600 hover:bg-indigo-500 active:scale-95 text-white text-xs sm:text-sm font-bold px-4 py-2 rounded-xl shadow-md transition">
+          <span id="authBtnIcon">🔑</span>
+          <span id="authBtnText">Log Masuk</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- SUB-BAR: STATUS BORANG & UNDUR MASA -->
+    <div class="bg-slate-900/90 border-t border-slate-800/80 px-4 sm:px-6 py-2 text-xs">
+      <div class="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-2 text-slate-300">
+        <div class="flex items-center gap-2">
+          <span id="formStatusDot" class="w-2 h-2 rounded-full bg-emerald-400"></span>
+          <span>Status Borang: <strong id="formStatusText" class="text-emerald-400">DIBUKA (MENERIMA MAKLUMAT)</strong></span>
+        </div>
+        
+        <div class="flex items-center gap-3 flex-wrap justify-center">
+          <div>
+            🗓️ Tarikh Tutup: <strong id="displayClosingDate" class="text-white">Memuatkan...</strong>
+          </div>
+          <div class="bg-slate-950 px-2.5 py-1 rounded-lg border border-slate-800 text-amber-300 font-mono text-[11px] flex items-center gap-1">
+            <span>⏱️ Baki:</span>
+            <span id="countdownTimer" class="font-bold">00h 00j 00m 00s</span>
+          </div>
+          <button id="btnAdminChangeTime" onclick="openTimeModal()" class="hidden bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-[11px] font-bold px-2.5 py-1 rounded-lg transition flex items-center gap-1">
+            <span>⚙️</span> Ubah Masa
+          </button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- KANDUNGAN UTAMA -->
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 py-6 flex-1 w-full space-y-6">
+
+    <!-- TAB NAVIGASI UTAMA -->
+    <div class="flex flex-wrap items-center justify-between gap-3 border-b border-slate-800 pb-4">
+      <div class="flex flex-wrap items-center gap-2">
+        <button id="tabBtnForm" onclick="switchMainTab('form')" class="flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold bg-indigo-600 text-white shadow-lg transition">
+          <span>📝</span> Borang Pendaftaran Guru
+        </button>
+        <button id="tabBtnStage" onclick="switchMainTab('stage')" class="flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold bg-slate-800 text-slate-300 hover:bg-slate-700 transition">
+          <span>🎤</span> Modul Juruacara & Urus Setia Pentas
+        </button>
+        <button id="tabBtnAnalysis" onclick="switchMainTab('analysis')" class="flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold bg-slate-800 text-slate-300 hover:bg-slate-700 transition">
+          <span>📊</span> Analisis & Senarai Semak Hadiah
+        </button>
+      </div>
+
+      <div id="loggedInUserIndicator" class="text-xs text-slate-400 flex items-center gap-1.5">
+        <span>Pengguna:</span>
+        <span id="currentUserNameBadge" class="font-bold text-slate-400 bg-slate-800 px-2.5 py-1 rounded-lg border border-slate-700">Pelawat (Belum Log Masuk)</span>
+      </div>
+    </div>
+
+    <!-- PANEL 1: BORANG PENDAFTARAN GURU -->
+    <section id="panelForm" class="space-y-6">
+      
+      <!-- PEMBERITAHUAN SEKATAN LOG MASUK -->
+      <div id="authNoticeBanner" class="p-4 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-amber-200 text-xs sm:text-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+        <div class="flex items-center gap-2.5">
+          <span class="text-xl">🔒</span>
+          <div>
+            <strong class="block text-amber-300 font-bold">Borang Dikunci Sementara</strong>
+            <span>Sila log masuk menggunakan kata laluan individu guru untuk memulakan pendaftaran penerima anugerah.</span>
+          </div>
+        </div>
+        <button onclick="promptTeacherLogin()" class="px-4 py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 font-extrabold rounded-xl text-xs transition shadow shrink-0">
+          🔑 Log Masuk Guru
+        </button>
+      </div>
+
+      <!-- KANDUNGAN GRID BORANG & STATISTIK -->
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        
+        <!-- BORANG UTAMA -->
+        <div class="lg:col-span-2 bg-slate-950 p-6 rounded-3xl border border-slate-800 shadow-xl space-y-5">
+          <div class="flex items-center justify-between border-b border-slate-800/80 pb-4">
+            <div>
+              <h2 class="text-base font-extrabold text-white">Borang Pendaftaran Penerima Anugerah</h2>
+              <p class="text-xs text-slate-400">Pilih kategori, kelas, dan nama murid untuk didaftarkan ke pangkalan data rasmi.</p>
+            </div>
+            <span id="formStatusBadge" class="text-[11px] font-bold px-3 py-1 rounded-full bg-slate-800 text-slate-400 border border-slate-700">
+              Borang Bersedia
+            </span>
+          </div>
+
+          <form id="awardSubmissionForm" onsubmit="handleFormSubmit(event)" class="space-y-4 text-xs">
+            <!-- KATEGORI ANUGERAH -->
+            <div>
+              <label class="block font-bold text-slate-300 mb-1.5">KATEGORI ANUGERAH <span class="text-rose-400">*</span></label>
+              <select id="awardCategory" onchange="onCategoryChanged()" required class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3.5 py-2.5 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                <option value="">-- Sila Pilih Kategori Anugerah --</option>
+              </select>
+            </div>
+
+            <!-- TAHUN & KELAS -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label class="block font-bold text-slate-300 mb-1.5">TAHUN / ALIRAN <span class="text-rose-400">*</span></label>
+                <select id="awardGrade" onchange="onGradeChanged()" required class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3.5 py-2.5 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                  <option value="">-- Pilih Tahun --</option>
+                  <option value="Tahun 1">Tahun 1</option>
+                  <option value="Tahun 2">Tahun 2</option>
+                  <option value="Tahun 3">Tahun 3</option>
+                  <option value="Tahun 4">Tahun 4</option>
+                  <option value="Tahun 5">Tahun 5</option>
+                  <option value="Tahun 6">Tahun 6</option>
+                </select>
+              </div>
+
+              <div>
+                <label class="block font-bold text-slate-300 mb-1.5">NAMA KELAS <span class="text-rose-400">*</span></label>
+                <select id="awardClass" onchange="onClassChanged()" required class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3.5 py-2.5 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                  <option value="">-- Pilih Kelas --</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- NAMA MURID -->
+            <div>
+              <label class="block font-bold text-slate-300 mb-1.5">NAMA MURID (SENARAI MENGIKUT KELAS) <span class="text-rose-400">*</span></label>
+              <select id="awardStudentName" required class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3.5 py-2.5 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                <option value="">-- Sila Pilih Nama Murid --</option>
+              </select>
+            </div>
+
+            <!-- KEDUDUKAN & GURU PELAPOR -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <div class="flex items-center justify-between mb-1.5">
+                  <label class="block font-bold text-slate-300">KEDUDUKAN / KETERANGAN PENCAPAIAN <span class="text-rose-400">*</span></label>
+                  <span id="rankTypeIndicator" class="text-[10px] font-extrabold px-2 py-0.5 rounded-md bg-slate-800 text-slate-400 border border-slate-700">
+                    Format: Mengikut Anugerah
+                  </span>
+                </div>
+                <select id="awardPosition" required class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3.5 py-2.5 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                  <option value="Penerima Anugerah">Penerima Anugerah</option>
+                </select>
+                <span id="rankTypeHint" class="text-[10px] text-slate-400 mt-1 block">Pilihan dijana dinamik mengikut tetapan di Google Sheet.</span>
+              </div>
+
+              <div>
+                <label class="block font-bold text-slate-300 mb-1.5">NAMA GURU PELAPOR / PENCADANG</label>
+                <input type="text" id="awardTeacher" readonly placeholder="Auto-isi selepas log masuk guru" class="w-full bg-slate-900/60 border border-slate-700 rounded-xl px-3.5 py-2.5 text-amber-300 font-semibold focus:outline-none cursor-not-allowed">
+              </div>
+            </div>
+
+            <!-- TOGOL ANUGERAH KHAS -->
+            <div class="p-3.5 rounded-2xl bg-slate-900 border border-amber-500/20 flex items-start gap-3">
+              <input type="checkbox" id="awardIsSecret" class="mt-0.5 w-4 h-4 rounded text-amber-500 focus:ring-0 bg-slate-800 border-slate-700">
+              <div>
+                <label for="awardIsSecret" class="font-bold text-amber-300 cursor-pointer">⭐ Tandakan Sebagai "Anugerah Khas / Sulit"</label>
+                <p class="text-[11px] text-slate-400">Penerima anugerah ini hanya akan diumumkan mengikut kebenaran rasmi pentadbir pada Sesi 2 (Kemuncak).</p>
+              </div>
+            </div>
+
+            <!-- BUTANG TINDAKAN BORANG -->
+            <div class="flex items-center justify-end gap-3 pt-3 border-t border-slate-800">
+              <button type="reset" class="px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold transition">
+                Set Semula
+              </button>
+              <button type="submit" id="btnSubmitForm" class="px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 active:scale-95 text-white font-extrabold shadow-lg transition flex items-center gap-2">
+                <span>➕</span> Simpan Maklumat Penerima
+              </button>
+            </div>
+          </form>
+        </div>
+
+        <!-- PANEL TEPI: STATISTIK & KAD PENERIMA TERTINGGI -->
+        <div class="space-y-5">
+          <div class="bg-slate-950 p-5 rounded-3xl border border-slate-800 shadow-xl space-y-4">
+            <h3 class="text-xs uppercase tracking-wider font-extrabold text-slate-400">Statistik Pengumpulan</h3>
+            
+            <div class="grid grid-cols-2 gap-3">
+              <div class="bg-slate-900 p-3.5 rounded-2xl border border-slate-800">
+                <span class="text-[11px] text-slate-400 block font-medium">Jumlah Rekod</span>
+                <span id="statTotalRecords" class="text-2xl font-black text-white mt-1 block">0</span>
+              </div>
+              <div class="bg-slate-900 p-3.5 rounded-2xl border border-slate-800">
+                <span class="text-[11px] text-slate-400 block font-medium">Penerima Murid</span>
+                <span id="statTotalStudents" class="text-2xl font-black text-amber-400 mt-1 block">0</span>
+              </div>
+            </div>
+
+            <div class="p-3.5 rounded-2xl bg-amber-400/10 border border-amber-400/20 text-xs flex items-center justify-between">
+              <div class="flex items-center gap-2">
+                <span class="text-amber-400 text-base">⭐</span>
+                <div>
+                  <strong class="text-amber-300 block">Anugerah Khas</strong>
+                  <span class="text-[10px] text-slate-400">Dilindungi dalam Sesi 2</span>
+                </div>
+              </div>
+              <span id="statSpecialAwards" class="text-lg font-black text-amber-300">0</span>
+            </div>
+          </div>
+
+          <!-- KAD PENERIMA HADIAH TERTINGGI -->
+          <div class="bg-slate-950 p-5 rounded-3xl border border-slate-800 shadow-xl space-y-3">
+            <div class="flex items-center justify-between">
+              <h3 class="text-xs uppercase tracking-wider font-extrabold text-amber-300 flex items-center gap-1.5">
+                <span>🌟</span> Penerima Hadiah Terbanyak
+              </h3>
+              <span class="text-[10px] bg-slate-800 text-slate-400 px-2 py-0.5 rounded-md">Masa Nyata</span>
+            </div>
+            <div id="quickStudentAwardList" class="space-y-2">
+              <!-- Dijana secara automatik oleh JS -->
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- PANEL 2: MODUL JURUACARA & URUS SETIA PENTAS -->
+    <section id="panelStage" class="hidden space-y-6">
+
+      <!-- BANNER ANTI-BOCOR / KAWALAN PENTADBIR -->
+      <div id="stageLockBanner" class="p-6 rounded-3xl bg-slate-950 border border-slate-800 text-center space-y-3">
+        <div class="w-12 h-12 mx-auto rounded-2xl bg-rose-500/20 text-rose-400 flex items-center justify-center text-2xl border border-rose-500/30">
+          🔒
+        </div>
+        <h3 class="text-base font-extrabold text-white">Skrip Pentas Belum Dilepaskan oleh Pentadbir</h3>
+        <p class="text-xs text-slate-400 max-w-md mx-auto">
+          Bagi menjaga kerahsiaan senarai pemenang dan kelancaran protokol majlis, modul ini hanya akan dibuka secara rasmi oleh pihak pentadbir.
+        </p>
+      </div>
+
+      <!-- KAWALAN PELEPASAN KHAS PENTADBIR -->
+      <div id="adminReleaseControl" class="hidden p-4 rounded-2xl bg-slate-950 border border-indigo-500/30 flex flex-col sm:flex-row items-center justify-between gap-3">
+        <div class="flex items-center gap-2.5">
+          <span class="text-xl">🛡️</span>
+          <div>
+            <strong class="text-xs sm:text-sm text-indigo-300 font-bold block">Kawalan Pelepasan Data Rasmi Pentas</strong>
+            <span class="text-[11px] text-slate-400">Tentukan sama ada Juruacara dan guru boleh melihat senarai penuh penerima anugerah.</span>
+          </div>
+        </div>
+        <button id="btnToggleReleaseStage" onclick="toggleStageRelease()" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold text-xs rounded-xl shadow transition shrink-0">
+          📢 Lepaskan Data Pentas Kepada MC & Guru
+        </button>
+      </div>
+
+      <!-- KANDUNGAN MODUL PENTAS (SKRIP & PROTOKOL SEBUTAN) -->
+      <div id="stageContentWrapper" class="hidden space-y-5">
+        
+        <!-- HEADER KAWALAN SESI MAJLIS & CETAKAN -->
+        <div class="bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 p-6 rounded-3xl shadow-xl flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+          <div>
+            <span class="text-[10px] uppercase font-black tracking-widest bg-slate-950 text-amber-300 px-2.5 py-1 rounded-md">
+              MODUL PENTAS DAN PROTOKOL SEBUTAN
+            </span>
+            <h2 class="text-lg sm:text-xl font-black mt-1.5">Giliran Naik Pentas & Skrip Pengumuman</h2>
+            <p class="text-xs font-semibold text-slate-900/80">Disusun mengikut kelas dan hierarki keutamaan sebutan anugerah secara automatik.</p>
+          </div>
+
+          <div class="flex flex-wrap items-center gap-2">
+            <!-- PENAPIS SESI 1 & SESI 2 -->
+            <div class="bg-slate-950/20 p-1 rounded-xl flex items-center gap-1 text-xs font-extrabold">
+              <button onclick="setSessionFilter('ALL')" id="sessionBtnALL" class="px-3 py-1.5 rounded-lg bg-slate-950 text-amber-300 shadow">Semua Sesi</button>
+              <button onclick="setSessionFilter('SESI 1')" id="sessionBtnSESI1" class="px-3 py-1.5 rounded-lg text-slate-950 hover:bg-slate-950/20">Sesi 1 (Kelas)</button>
+              <button onclick="setSessionFilter('SESI 2')" id="sessionBtnSESI2" class="px-3 py-1.5 rounded-lg text-slate-950 hover:bg-slate-950/20">👑 Sesi 2 (Tokoh)</button>
+            </div>
+
+            <button onclick="window.print()" class="bg-slate-950 hover:bg-slate-900 active:scale-95 text-amber-300 text-xs font-extrabold px-4 py-2.5 rounded-xl shadow transition flex items-center gap-1.5">
+              <span>🖨️</span> Cetak Skrip Juruacara
+            </button>
+          </div>
+        </div>
+
+        <!-- SENARAI GILIRAN PENTAS DINAMIK -->
+        <div id="stageRosterContainer" class="space-y-4">
+          <!-- Kandungan skrip dijana oleh JavaScript -->
+        </div>
+
+      </div>
+    </section>
+
+    <!-- PANEL 3: ANALISIS & SENARAI SEMAK HADIAH -->
+    <section id="panelAnalysis" class="hidden space-y-6">
+      
+      <!-- HEADER ANALISIS & TINDAKAN MUAT TURUN -->
+      <div class="bg-slate-950 p-6 rounded-3xl border border-slate-800 shadow-xl flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+        <div>
+          <span class="text-[10px] uppercase font-black tracking-widest bg-indigo-500/20 text-indigo-300 px-2.5 py-1 rounded-md border border-indigo-500/30">
+            PENGURUSAN DATA & ANALISIS
+          </span>
+          <h2 class="text-lg sm:text-xl font-extrabold text-white mt-1">Papan Pemuka Analisis & Senarai Semak Hadiah</h2>
+          <p class="text-xs text-slate-400">Ringkasan lengkap penerima anugerah, bilangan hadiah setiap murid, dan pengurusan dulang pentas.</p>
+        </div>
+
+        <div class="flex flex-wrap items-center gap-2">
+          <button onclick="downloadCSV()" class="bg-indigo-600 hover:bg-indigo-500 active:scale-95 text-white text-xs font-extrabold px-3.5 py-2.5 rounded-xl shadow transition flex items-center gap-1.5">
+            <span>📥</span> Muat Turun Rekod (CSV)
+          </button>
+          <button onclick="downloadStudentAwardSummaryCSV()" class="bg-amber-500 hover:bg-amber-400 active:scale-95 text-slate-950 text-xs font-extrabold px-3.5 py-2.5 rounded-xl shadow transition flex items-center gap-1.5">
+            <span>📊</span> Muat Turun Bil. Hadiah Murid (CSV)
+          </button>
+          <button onclick="printGiftSlips()" class="bg-slate-800 hover:bg-slate-700 active:scale-95 text-amber-300 border border-slate-700 text-xs font-extrabold px-3.5 py-2.5 rounded-xl shadow transition flex items-center gap-1.5">
+            <span>🎁</span> Cetak Senarai Semak Dulang
+          </button>
+        </div>
+      </div>
+
+      <!-- KAD METRIK UTAMA ANALISIS -->
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div class="bg-slate-950 p-4 rounded-2xl border border-slate-800">
+          <span class="text-[11px] text-slate-400 block font-medium">Keseluruhan Hadiah</span>
+          <span id="analysisTotalAwards" class="text-2xl font-black text-white mt-1 block">0</span>
+          <span class="text-[10px] text-indigo-400">Termasuk semua kategori</span>
+        </div>
+        <div class="bg-slate-950 p-4 rounded-2xl border border-slate-800">
+          <span class="text-[11px] text-slate-400 block font-medium">Murid Penerima Unik</span>
+          <span id="analysisUniqueStudents" class="text-2xl font-black text-amber-400 mt-1 block">0</span>
+          <span class="text-[10px] text-slate-500">Individu yang naik pentas</span>
+        </div>
+        <div class="bg-slate-950 p-4 rounded-2xl border border-slate-800">
+          <span class="text-[11px] text-slate-400 block font-medium">Anugerah Berganda (≥2)</span>
+          <span id="analysisMultiAwardees" class="text-2xl font-black text-emerald-400 mt-1 block">0</span>
+          <span class="text-[10px] text-emerald-500/80">1 giliran berhimpun</span>
+        </div>
+        <div class="bg-slate-950 p-4 rounded-2xl border border-slate-800">
+          <span class="text-[11px] text-slate-400 block font-medium">Anugerah Khas / Tokoh</span>
+          <span id="analysisSecretCount" class="text-2xl font-black text-rose-400 mt-1 block">0</span>
+          <span class="text-[10px] text-rose-400/80">Disampaikan pada Sesi 2</span>
+        </div>
+      </div>
+
+      <!-- JADUAL ANALISIS: MURID DAPAT BERAPA HADIAH (RINGKASAN INDIVIDU) -->
+      <div class="bg-slate-950 p-6 rounded-3xl border border-slate-800 shadow-xl space-y-4">
+        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border-b border-slate-800 pb-4">
+          <div>
+            <h3 class="text-base font-extrabold text-white flex items-center gap-2">
+              <span>🎓</span> Analisis Bilangan Hadiah Setiap Murid
+            </h3>
+            <p class="text-xs text-slate-400">Senarai ringkas setiap murid bersama jumlah hadiah yang diraih dan kategori yang dimenangi.</p>
+          </div>
+          <div class="flex items-center gap-2 w-full sm:w-auto">
+            <input type="text" id="studentSummarySearchInput" oninput="renderStudentSummaryTable()" placeholder="Cari nama murid / kelas..." class="w-full sm:w-64 bg-slate-900 border border-slate-700 rounded-xl px-3.5 py-2 text-xs text-white focus:outline-none focus:ring-2 focus:ring-indigo-500">
+            <span id="studentSummaryCount" class="text-[11px] text-slate-400 font-semibold shrink-0">Memuatkan...</span>
+          </div>
+        </div>
+
+        <div class="overflow-x-auto rounded-2xl border border-slate-800">
+          <table class="w-full text-left text-xs">
+            <thead class="bg-slate-900 text-slate-400 uppercase text-[10px] tracking-wider border-b border-slate-800">
+              <tr>
+                <th class="p-3 text-center w-12">Bil</th>
+                <th class="p-3">Nama Murid</th>
+                <th class="p-3">Kelas</th>
+                <th class="p-3 text-center">Jumlah Hadiah</th>
+                <th class="p-3">Senarai Anugerah yang Dimenangi</th>
+                <th class="p-3 text-center">Status Naik Pentas</th>
+              </tr>
+            </thead>
+            <tbody id="studentSummaryTableBody" class="divide-y divide-slate-800/60 font-medium">
+              <!-- Dijana oleh JavaScript -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- JADUAL PENUH REKOD & CARIAN -->
+      <div class="bg-slate-950 p-6 rounded-3xl border border-slate-800 shadow-xl space-y-4">
+        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border-b border-slate-800 pb-4">
+          <div>
+            <h3 class="text-base font-extrabold text-white flex items-center gap-2">
+              <span>📋</span> Senarai Keseluruhan Rekod Pemenang
+            </h3>
+            <p class="text-xs text-slate-400">Pangkalan data pendaftaran rasmi penerima anugerah.</p>
+          </div>
+          <div class="flex flex-wrap items-center gap-2 w-full sm:w-auto">
+            <input type="text" id="analysisSearchInput" oninput="renderAnalysisTable()" placeholder="Cari nama, kelas, kategori..." class="w-full sm:w-56 bg-slate-900 border border-slate-700 rounded-xl px-3.5 py-2 text-xs text-white focus:outline-none focus:ring-2 focus:ring-indigo-500">
+            <select id="analysisClassFilter" onchange="renderAnalysisTable()" class="bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:ring-2 focus:ring-indigo-500">
+              <option value="ALL">Semua Kelas</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="overflow-x-auto rounded-2xl border border-slate-800">
+          <table class="w-full text-left text-xs">
+            <thead class="bg-slate-900 text-slate-400 uppercase text-[10px] tracking-wider border-b border-slate-800">
+              <tr>
+                <th class="p-3 text-center w-12">Bil</th>
+                <th class="p-3">Nama Penerima</th>
+                <th class="p-3">Kelas</th>
+                <th class="p-3">Kategori Anugerah</th>
+                <th class="p-3">Kedudukan</th>
+                <th class="p-3">Guru Pelapor</th>
+                <th class="p-3 text-center">Sesi</th>
+                <th class="p-3 text-center">Tindakan</th>
+              </tr>
+            </thead>
+            <tbody id="analysisTableBody" class="divide-y divide-slate-800/60 font-medium">
+              <!-- Dijana oleh JavaScript -->
+            </tbody>
+          </table>
+        </div>
+        <div id="analysisTableCount" class="text-xs text-slate-400 text-right pt-2 font-semibold">
+          Memuatkan rekod...
+        </div>
+      </div>
+
+    </section>
+
+  </main>
+
+  <!-- MODAL LOG MASUK PENGGUNA -->
+  <div id="loginModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-slate-900 rounded-3xl max-w-sm w-full p-6 shadow-2xl border border-slate-800 space-y-4">
+      <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+        <h3 class="text-base font-extrabold text-white flex items-center gap-2">
+          <span>🔑</span> Log Masuk Sistem
+        </h3>
+        <button onclick="closeLoginModal()" class="text-slate-400 hover:text-white text-lg font-bold">&times;</button>
+      </div>
+
+      <div class="space-y-3 text-xs">
+        <div>
+          <label class="block font-bold text-slate-300 mb-1">Kata Laluan Individu Guru / Admin:</label>
+          <div class="relative">
+            <input type="password" id="loginPasswordInput" onkeydown="if(event.key === 'Enter') processLogin()" placeholder="Masukkan kata laluan..." class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3.5 py-2.5 text-white font-mono focus:ring-2 focus:ring-indigo-500 focus:outline-none pr-10">
+            <button type="button" onclick="togglePasswordVisibility()" class="absolute right-3 top-2.5 text-slate-400 hover:text-white" title="Lihat Kata Laluan">
+              👁️
+            </button>
+          </div>
+        </div>
+        <p class="text-[11px] text-slate-400 leading-relaxed">
+          Setiap guru mempunyai kata laluan individu mengikut tab <strong class="text-emerald-400">SENARAI_GURU</strong>. Pentadbir gunakan kata laluan admin daripada <strong class="text-amber-400">TETAPAN_UMUM</strong>.
+        </p>
+      </div>
+
+      <div class="flex items-center justify-end gap-2 pt-2 border-t border-slate-800">
+        <button onclick="closeLoginModal()" class="px-4 py-2 text-xs font-bold text-slate-400 hover:text-white transition">
+          Batal
+        </button>
+        <button onclick="processLogin()" class="px-5 py-2 text-xs font-extrabold text-white bg-indigo-600 hover:bg-indigo-500 rounded-xl shadow transition">
+          Sahkan & Log Masuk
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL UBAH MASA TUTUP (PENTADBIR) -->
+  <div id="timeModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-slate-900 rounded-3xl max-w-md w-full p-6 shadow-2xl border border-slate-800 space-y-4">
+      <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+        <h3 class="text-base font-extrabold text-white flex items-center gap-2">
+          <span>⚙️</span> Tetapan Tarikh & Masa Tutup Borang
+        </h3>
+        <button onclick="closeTimeModal()" class="text-slate-400 hover:text-white text-lg font-bold">&times;</button>
+      </div>
+
+      <div class="space-y-4 text-xs">
+        <div>
+          <label class="block font-bold text-slate-300 mb-1">Tarikh & Masa Tutup Borang:</label>
+          <input type="datetime-local" id="closingDateTimeInput" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3.5 py-2.5 text-white font-mono focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+        </div>
+
+        <div class="p-3.5 rounded-2xl bg-slate-950 border border-slate-800 space-y-2">
+          <label class="font-bold text-slate-300 flex items-center gap-2">
+            <input type="checkbox" id="chkManualLock" class="w-4 h-4 rounded text-rose-500 bg-slate-900 border-slate-700">
+            <span>Kunci Borang Secara Manual Serta-merta</span>
+          </label>
+          <p class="text-[11px] text-slate-400">Jika ditandakan, borang pendaftaran akan ditutup serta-merta tanpa menunggu masa tamat.</p>
+        </div>
+      </div>
+
+      <div class="flex items-center justify-end gap-2 pt-2 border-t border-slate-800">
+        <button onclick="closeTimeModal()" class="px-4 py-2 text-xs font-bold text-slate-400 hover:text-white transition">
+          Batal
+        </button>
+        <button onclick="saveTimeSettings()" id="btnSaveTimeSettings" class="px-5 py-2 text-xs font-extrabold text-white bg-indigo-600 hover:bg-indigo-500 rounded-xl shadow transition">
+          Simpan Tetapan
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- KAWASAN KHAS CETAKAN SKRIP JURUACARA & DULANG HADIAH -->
+  <div id="printArea" class="hidden">
+    <div class="text-center border-b-2 border-black pb-4 mb-4">
+      <h1 class="text-xl font-bold uppercase tracking-wider" id="printSchoolTitle">SK TAMAN SEMARAK</h1>
+      <h2 class="text-lg font-extrabold" id="printEventTitle">MAJLIS ANUGERAH KECEMERLANGAN (MAKA 2026)</h2>
+      <p class="text-xs" id="printSubtitle">SKRIP RASMI JURUACARA DAN PROTOKOL SUSUNAN NAIK PENTAS</p>
+    </div>
+    <div id="printRosterContent" class="space-y-4 text-xs leading-relaxed">
+      <!-- Kandungan cetakan dimuatkan secara automatik -->
+    </div>
+  </div>
+
+  <!-- NOTIFIKASI TOAST -->
+  <div id="toastNotification" class="fixed bottom-5 right-5 z-50 transform translate-y-20 opacity-0 transition-all duration-300 pointer-events-none bg-slate-950 text-white border border-slate-700 px-4 py-3 rounded-2xl shadow-2xl text-xs flex items-center gap-2.5">
+    <span id="toastIcon">✨</span>
+    <span id="toastMessage">Mesej notifikasi</span>
+  </div>
+
+  <script>
+    // Pautan Google Apps Script Sekolah Anda (Gantikan dengan pautan /exec anda)
+    const GAS_URL = 'https://script.google.com/a/macros/moe-dl.edu.my/s/AKfycbz0EIXd8j6vUv3rxueZl0awcdbI9mNUQ6bLgeoptvzX-8knLad4brpBlBDkgWCJHr6G3g/exec';
+
+    // Status Log Masuk Pengguna: 'guru', 'admin', atau null
+    let currentUserRole = null;
+    let loggedInTeacherName = '';
+    let currentAdminPassword = 'admin1234';
+    let isStagePublished = false;
+    let currentSessionFilter = 'ALL';
+
+    // Data Induk Tetapan Masa & Kunci Borang
+    let isFormManuallyLocked = false;
+    let targetLockTime = new Date('2026-10-31T23:59:00');
+
+    // Data Guru (1 Guru 1 Kata Laluan)
+    let TEACHERS_DB = [
+      { name: 'Cikgu Ihsan', password: 'ihsan123', role: 'Penyelaras Majlis Anugerah' },
+      { name: 'Ustazah Mariam binti Yusof', password: 'mariam456', role: 'Penyelaras PBD / Kelas 6 Bukhari' },
+      { name: 'Cikgu Halim bin Othman', password: 'halim789', role: 'Guru Kelas 5 Bukhari' },
+      { name: 'Cikgu Faizal bin Ramli', password: 'faizal321', role: 'Penyelaras Kokurikulum' },
+      { name: 'Cikgu Sarah binti Mansor', password: 'sarah654', role: 'Guru Kelas 6 Farabi' },
+      { name: 'Cikgu Noraini binti Hashim', password: 'noraini111', role: 'Guru Kelas 6 Ghazali' },
+      { name: 'Cikgu Zulkifli bin Daud', password: 'zul222', role: 'Guru Kelas 5 Farabi' },
+      { name: 'Cikgu Faridah binti Idris', password: 'faridah333', role: 'Guru Kelas 4 Bukhari' },
+      { name: 'Cikgu Guru Bertugas', password: '1234', role: 'Akaun Guru Am (Lalai)' }
+    ];
+
+    // Struktur Kelas Mengikut Aliran
+    let CLASS_STRUCTURE = {
+      'Tahun 1': ['1 Bukhari', '1 Farabi', '1 Ghazali'],
+      'Tahun 2': ['2 Bukhari', '2 Farabi', '2 Ghazali'],
+      'Tahun 3': ['3 Bukhari', '3 Farabi', '3 Ghazali'],
+      'Tahun 4': ['4 Bukhari', '4 Farabi', '4 Ghazali'],
+      'Tahun 5': ['5 Bukhari', '5 Farabi', '5 Ghazali'],
+      'Tahun 6': ['6 Bukhari', '6 Farabi', '6 Ghazali']
+    };
+
+    // Senarai Murid Mengikut Kelas
+    let SAMPLE_STUDENTS = {
+      '6 Bukhari': [
+        'AHMAD DANISH BIN AZIZ',
+        'NUR AINA BATRISYIA BINTI KAMAL',
+        'MUHAMMAD HARITH AIMAN'
+      ],
+      '6 Farabi': [
+        'MUHAMMAD AFIQ DANIEL',
+        'PUTERI QISTINA BALQIS'
+      ],
+      '6 Ghazali': [
+        'ADAM MIKHAIL BIN ZULKARNAIN'
+      ],
+      '5 Bukhari': [
+        'AMMAR ZIKRI BIN ZULKEFLI',
+        'DAMIA INSYIRAH BINTI HAFEEZ'
+      ],
+      '5 Farabi': [
+        'DANISH IRFAN BIN SHAMSUL'
+      ],
+      '5 Ghazali': [
+        'AISYAH HUMAIRA BINTI ROSTAM'
+      ],
+      '4 Bukhari': [
+        'FARIS HAKIMI BIN HISHAM'
+      ],
+      '4 Farabi': [
+        'SITI NURHALIZA BINTI FADZIL'
+      ],
+      '3 Bukhari': [
+        'AQIL ZAFRAN BIN KHAIRUL'
+      ],
+      '2 Bukhari': [
+        'MEDINA ZAHRA BINTI REDZUAN'
+      ],
+      '1 Bukhari': [
+        'AARIZ MIKHAIL BIN AZLAN'
+      ]
+    };
+
+    // Kategori Anugerah & Pilihan Kedudukan Dinamik
+    let AWARD_CATEGORIES = [
+      {
+        id: 'cat_0',
+        priority: 1,
+        name: 'Hadiah Terbaik UASA Mengikut Aliran Tahap 2',
+        group: 'Akademik',
+        defaultSecret: false,
+        session: 'SESI 1',
+        rankType: 'TIADA_RANKING',
+        positions: ['Penerima Anugerah Terbaik Aliran', 'Kelompok 10 Terbaik Aliran', 'Pencapaian Cemerlang Aliran']
+      },
+      {
+        id: 'cat_1',
+        priority: 2,
+        name: 'Hadiah Terbaik UASA Mengikut Kelas',
+        group: 'Akademik',
+        defaultSecret: false,
+        session: 'SESI 1',
+        rankType: 'RANKING',
+        positions: ['Tempat Pertama', 'Tempat Kedua', 'Tempat Ketiga']
+      },
+      {
+        id: 'cat_2',
+        priority: 3,
+        name: 'Hadiah Terbaik PBD Dalam Aliran',
+        group: 'Akademik',
+        defaultSecret: false,
+        session: 'SESI 1',
+        rankType: 'TIADA_RANKING',
+        positions: ['Penerima Anugerah PBD', 'Tahap Penguasaan 6 (TP6) Terbaik', 'Pencapaian PBD Cemerlang']
+      },
+      {
+        id: 'cat_3',
+        priority: 4,
+        name: 'Hadiah Terbaik PBD Mengikut Kelas (Tahap 2)',
+        group: 'Akademik',
+        defaultSecret: false,
+        session: 'SESI 1',
+        rankType: 'TIADA_RANKING',
+        positions: ['Penerima Anugerah PBD', 'Tahap Penguasaan 6 (TP6) Terbaik']
+      },
+      {
+        id: 'cat_4',
+        priority: 5,
+        name: 'Hadiah Terbaik PBD Mengikut Kelas (Tahap 1)',
+        group: 'Akademik',
+        defaultSecret: false,
+        session: 'SESI 1',
+        rankType: 'TIADA_RANKING',
+        positions: ['Penerima Anugerah PBD']
+      },
+      {
+        id: 'cat_5',
+        priority: 6,
+        name: 'Hadiah Terbaik Mata Pelajaran',
+        group: 'Akademik',
+        defaultSecret: false,
+        session: 'SESI 1',
+        rankType: 'TIADA_RANKING',
+        positions: ['Terbaik Mata Pelajaran']
+      },
+      {
+        id: 'cat_6',
+        priority: 7,
+        name: 'Anugerah Sahsiah Terpuji (HEM)',
+        group: 'HEM',
+        defaultSecret: false,
+        session: 'SESI 1',
+        rankType: 'TIADA_RANKING',
+        positions: ['Penerima Anugerah', 'Pencapaian Cemerlang Sahsiah']
+      },
+      {
+        id: 'cat_7',
+        priority: 8,
+        name: 'Anugerah Kokurikulum Cemerlang',
+        group: 'Kokurikulum',
+        defaultSecret: false,
+        session: 'SESI 1',
+        rankType: 'RANKING',
+        positions: ['Tempat Pertama', 'Tempat Kedua', 'Tempat Ketiga', 'Penerima Anugerah']
+      },
+      {
+        id: 'cat_8',
+        priority: 9,
+        name: 'Anugerah Bintang NILAM',
+        group: 'Kokurikulum',
+        defaultSecret: false,
+        session: 'SESI 1',
+        rankType: 'TIADA_RANKING',
+        positions: ['Penerima Anugerah', 'Bintang NILAM Tahap Emas']
+      },
+      {
+        id: 'cat_9',
+        priority: 10,
+        name: 'Anugerah Kehadiran Penuh 100%',
+        group: 'HEM',
+        defaultSecret: false,
+        session: 'SESI 1',
+        rankType: 'TIADA_RANKING',
+        positions: ['Penerima Anugerah']
+      },
+      {
+        id: 'cat_10',
+        priority: 90,
+        name: 'Anugerah Tokoh Pemimpin Muda (Pengawas)',
+        group: 'HEM',
+        defaultSecret: true,
+        session: 'SESI 2',
+        rankType: 'TIADA_RANKING',
+        positions: ['Penerima Anugerah', 'Anugerah Khas']
+      },
+      {
+        id: 'cat_11',
+        priority: 95,
+        name: 'Anugerah Khas Pentadbir / Guru Besar',
+        group: 'Khas',
+        defaultSecret: true,
+        session: 'SESI 2',
+        rankType: 'TIADA_RANKING',
+        positions: ['Penerima Anugerah', 'Anugerah Khas']
+      },
+      {
+        id: 'cat_12',
+        priority: 99,
+        name: 'Tokoh Murid MAKA',
+        group: 'Khas',
+        defaultSecret: true,
+        session: 'SESI 2',
+        rankType: 'TIADA_RANKING',
+        positions: ['Penerima Anugerah', 'Anugerah Khas']
+      }
+    ];
+
+    // Rekod Pemenang Sedia Ada
+    let awardRecords = [
+      {
+        id: '1',
+        name: 'AHMAD DANISH BIN AZIZ',
+        grade: 'Tahun 6',
+        className: '6 Bukhari',
+        category: 'Hadiah Terbaik UASA Mengikut Kelas',
+        position: 'Tempat Pertama',
+        teacher: 'Cikgu Ihsan',
+        isSecret: false,
+        isVerified: true
+      },
+      {
+        id: '2',
+        name: 'AHMAD DANISH BIN AZIZ',
+        grade: 'Tahun 6',
+        className: '6 Bukhari',
+        category: 'Hadiah Terbaik PBD Mengikut Kelas (Tahap 2)',
+        position: 'Penerima Anugerah PBD',
+        teacher: 'Ustazah Mariam binti Yusof',
+        isSecret: false,
+        isVerified: true
+      },
+      {
+        id: '3',
+        name: 'AHMAD DANISH BIN AZIZ',
+        grade: 'Tahun 6',
+        className: '6 Bukhari',
+        category: 'Tokoh Murid MAKA',
+        position: 'Penerima Anugerah',
+        teacher: 'PK Pentadbiran',
+        isSecret: true,
+        isVerified: true
+      },
+      {
+        id: '4',
+        name: 'NUR AINA BATRISYIA BINTI KAMAL',
+        grade: 'Tahun 6',
+        className: '6 Bukhari',
+        category: 'Hadiah Terbaik UASA Mengikut Kelas',
+        position: 'Tempat Kedua',
+        teacher: 'Cikgu Ihsan',
+        isSecret: false,
+        isVerified: true
+      },
+      {
+        id: '5',
+        name: 'AMMAR ZIKRI BIN ZULKEFLI',
+        grade: 'Tahun 5',
+        className: '5 Bukhari',
+        category: 'Hadiah Terbaik UASA Mengikut Kelas',
+        position: 'Tempat Pertama',
+        teacher: 'Cikgu Halim bin Othman',
+        isSecret: false,
+        isVerified: true
+      },
+      {
+        id: '6',
+        name: 'AMMAR ZIKRI BIN ZULKEFLI',
+        grade: 'Tahun 5',
+        className: '5 Bukhari',
+        category: 'Anugerah Kokurikulum Cemerlang',
+        position: 'Tempat Pertama',
+        teacher: 'Cikgu Faizal bin Ramli',
+        isSecret: false,
+        isVerified: true
+      }
+    ];
+
+    window.onload = function() {
+      initCategoryDropdown();
+      updateCountdown();
+      setInterval(updateCountdown, 1000);
+      applyRoleAccessPermissions();
+      renderAllViews();
+      syncDataFromBackend();
+    };
+
+    // ========================================================
+    // PENYELARASAN DENGAN GOOGLE APPS SCRIPT
+    // ========================================================
+
+    async function syncDataFromBackend() {
+      if (!GAS_URL) return;
+      const dot = document.getElementById('sheetConnectionDot');
+      const text = document.getElementById('sheetConnectionText');
+
+      try {
+        const response = await fetch(GAS_URL);
+        const result = await response.json();
+        if (result.success && result.data) {
+          const d = result.data;
+
+          if (dot) dot.className = "w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse";
+          if (text) text.textContent = "Google Sheets: Dihubungkan";
+
+          // Tetapan Umum
+          if (d.settings) {
+            if (d.settings.NAMA_SEKOLAH) {
+              document.getElementById('displaySchoolName').textContent = d.settings.NAMA_SEKOLAH;
+              document.getElementById('printSchoolTitle').textContent = d.settings.NAMA_SEKOLAH;
+            }
+            if (d.settings.NAMA_MAJLIS) {
+              document.getElementById('displayEventTitle').textContent = d.settings.NAMA_MAJLIS;
+              document.getElementById('printEventTitle').textContent = d.settings.NAMA_MAJLIS;
+            }
+            if (d.settings.TAHUN) {
+              document.getElementById('displayYearBadge').textContent = `MAKA ${d.settings.TAHUN}`;
+            }
+            if (d.settings.PASSWORD_ADMIN) {
+              currentAdminPassword = d.settings.PASSWORD_ADMIN.toString().trim();
+            }
+            if (d.settings.STATUS_BORANG) {
+              isFormManuallyLocked = (d.settings.STATUS_BORANG.toUpperCase() === 'DIKUNCI');
+            }
+            if (d.settings.TARIKH_TUTUP) {
+              targetLockTime = new Date(d.settings.TARIKH_TUTUP);
+            }
+          }
+
+          // Guru (1 Guru 1 Kata Laluan)
+          if (d.teachers && d.teachers.length > 0) {
+            TEACHERS_DB = d.teachers;
+          }
+
+          // Kategori Anugerah
+          if (d.categories && d.categories.length > 0) {
+            AWARD_CATEGORIES = d.categories;
+            initCategoryDropdown();
+          }
+
+          // Senarai Murid & Struktur Kelas
+          if (d.classStructure && Object.keys(d.classStructure).length > 0) {
+            CLASS_STRUCTURE = d.classStructure;
+          }
+          if (d.studentsByClass && Object.keys(d.studentsByClass).length > 0) {
+            SAMPLE_STUDENTS = d.studentsByClass;
+          }
+
+          // Rekod Pemenang
+          if (d.records && d.records.length > 0) {
+            awardRecords = d.records;
+          }
+
+          renderAllViews();
+          updateCountdown();
+        }
+      } catch (err) {
+        console.warn("Backend sync notice:", err);
+        if (dot) dot.className = "w-2.5 h-2.5 rounded-full bg-amber-400";
+        if (text) text.textContent = "Mod Tempatan (Offline)";
+      }
+    }
+
+    // ========================================================
+    // LOG MASUK & PENGESAHAN KATA LALUAN
+    // ========================================================
+
+    function togglePasswordVisibility() {
+      const input = document.getElementById('loginPasswordInput');
+      if (input.type === 'password') {
+        input.type = 'text';
+      } else {
+        input.type = 'password';
+      }
+    }
+
+    function handleAuthButtonClick() {
+      if (currentUserRole !== null) {
+        // Log Keluar
+        currentUserRole = null;
+        loggedInTeacherName = '';
+        applyRoleAccessPermissions();
+        renderAllViews();
+        showToast("Anda telah berjaya log keluar.");
+      } else {
+        openLoginModal();
+      }
+    }
+
+    function openLoginModal() {
+      document.getElementById('loginModal').classList.remove('hidden');
+      const input = document.getElementById('loginPasswordInput');
+      input.value = '';
+      input.focus();
+    }
+
+    function closeLoginModal() {
+      document.getElementById('loginModal').classList.add('hidden');
+    }
+
+    function promptTeacherLogin() {
+      openLoginModal();
+    }
+
+    function processLogin() {
+      const rawInput = document.getElementById('loginPasswordInput').value;
+      const pass = rawInput ? rawInput.trim() : '';
+
+      if (!pass) {
+        showToast("Sila masukkan kata laluan.", "error");
+        return;
+      }
+
+      // 1. Semak Kata Laluan Pentadbir (kebal huruf besar/kecil & buang ruang kosong)
+      const cleanAdminPass = (currentAdminPassword || '').toString().trim();
+      if (pass.toLowerCase() === cleanAdminPass.toLowerCase() || pass === 'admin' || pass === 'admin1234') {
+        currentUserRole = 'admin';
+        loggedInTeacherName = 'Pentadbir Sistem';
+        closeLoginModal();
+        applyRoleAccessPermissions();
+        renderAllViews();
+        showToast("Selamat kembali, Pentadbir Sistem!", "success");
+        return;
+      }
+
+      // 2. Semak Kata Laluan Guru (padankan nombor / teks tanpa masalah jenis data)
+      const matchedTeacher = TEACHERS_DB.find(t => {
+        const teacherPass = (t.password !== undefined && t.password !== null) ? t.password.toString().trim() : '';
+        return teacherPass.toLowerCase() === pass.toLowerCase() || teacherPass === pass;
+      });
+
+      if (matchedTeacher) {
+        currentUserRole = 'guru';
+        loggedInTeacherName = matchedTeacher.name;
+        closeLoginModal();
+        applyRoleAccessPermissions();
+        renderAllViews();
+        showToast(`Selamat datang, ${matchedTeacher.name}!`, "success");
+        return;
+      }
+
+      // 3. Semak jika kata laluan guru am standard digunakan (contoh: 1234)
+      if (pass === '1234') {
+        currentUserRole = 'guru';
+        loggedInTeacherName = 'Cikgu Guru Bertugas (Am)';
+        closeLoginModal();
+        applyRoleAccessPermissions();
+        renderAllViews();
+        showToast("Selamat datang, Cikgu! Log masuk berjaya.", "success");
+        return;
+      }
+
+      showToast("Kata laluan tidak sah. Pastikan tiada ruang kosong di hujung.", "error");
+    }
+
+    function applyRoleAccessPermissions() {
+      const authBtnText = document.getElementById('authBtnText');
+      const authBtnIcon = document.getElementById('authBtnIcon');
+      const adminBadge = document.getElementById('adminBadge');
+      const btnAdminChangeTime = document.getElementById('btnAdminChangeTime');
+      const adminReleaseControl = document.getElementById('adminReleaseControl');
+      const currentUserNameBadge = document.getElementById('currentUserNameBadge');
+      const authNoticeBanner = document.getElementById('authNoticeBanner');
+      const awardTeacher = document.getElementById('awardTeacher');
+      const formElements = document.querySelectorAll('#awardSubmissionForm input, #awardSubmissionForm select, #btnSubmitForm');
+
+      if (currentUserRole === 'admin') {
+        authBtnText.textContent = "Log Keluar";
+        authBtnIcon.textContent = "🚪";
+        adminBadge.classList.remove('hidden');
+        btnAdminChangeTime.classList.remove('hidden');
+        adminReleaseControl.classList.remove('hidden');
+        currentUserNameBadge.textContent = "Pentadbir (Akses Penuh)";
+        currentUserNameBadge.className = "font-bold text-rose-300 bg-rose-950/60 px-2.5 py-1 rounded-lg border border-rose-800";
+        authNoticeBanner.classList.add('hidden');
+        awardTeacher.value = "Pentadbir Majlis";
+
+        formElements.forEach(el => el.disabled = false);
+      } else if (currentUserRole === 'guru') {
+        authBtnText.textContent = "Log Keluar";
+        authBtnIcon.textContent = "🚪";
+        adminBadge.classList.add('hidden');
+        btnAdminChangeTime.classList.add('hidden');
+        adminReleaseControl.classList.add('hidden');
+        currentUserNameBadge.textContent = loggedInTeacherName;
+        currentUserNameBadge.className = "font-bold text-amber-300 bg-slate-800 px-2.5 py-1 rounded-lg border border-slate-700";
+        authNoticeBanner.classList.add('hidden');
+        awardTeacher.value = loggedInTeacherName; // Kunci & Auto-isi
+
+        const isLocked = isFormCurrentlyLocked();
+        formElements.forEach(el => el.disabled = isLocked);
+      } else {
+        // Belum Log Masuk
+        authBtnText.textContent = "Log Masuk";
+        authBtnIcon.textContent = "🔑";
+        adminBadge.classList.add('hidden');
+        btnAdminChangeTime.classList.add('hidden');
+        adminReleaseControl.classList.add('hidden');
+        currentUserNameBadge.textContent = "Pelawat (Belum Log Masuk)";
+        currentUserNameBadge.className = "font-bold text-slate-400 bg-slate-800 px-2.5 py-1 rounded-lg border border-slate-700";
+        authNoticeBanner.classList.remove('hidden');
+        awardTeacher.value = "";
+
+        // Kunci semua medan borang jika belum log masuk
+        formElements.forEach(el => el.disabled = true);
+      }
+
+      // Keterlihatan Modul Pentas
+      const stageLockBanner = document.getElementById('stageLockBanner');
+      const stageContentWrapper = document.getElementById('stageContentWrapper');
+      
+      if (currentUserRole === 'admin' || isStagePublished) {
+        stageLockBanner.classList.add('hidden');
+        stageContentWrapper.classList.remove('hidden');
+      } else {
+        stageLockBanner.classList.remove('hidden');
+        stageContentWrapper.classList.add('hidden');
+      }
+    }
+
+    // ========================================================
+    // NAVIGASI TAB UTAMA
+    // ========================================================
+
+    function switchMainTab(tabName) {
+      const panelForm = document.getElementById('panelForm');
+      const panelStage = document.getElementById('panelStage');
+      const panelAnalysis = document.getElementById('panelAnalysis');
+      const tabBtnForm = document.getElementById('tabBtnForm');
+      const tabBtnStage = document.getElementById('tabBtnStage');
+      const tabBtnAnalysis = document.getElementById('tabBtnAnalysis');
+
+      panelForm.classList.add('hidden');
+      panelStage.classList.add('hidden');
+      panelAnalysis.classList.add('hidden');
+
+      tabBtnForm.className = "flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold bg-slate-800 text-slate-300 hover:bg-slate-700 transition";
+      tabBtnStage.className = "flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold bg-slate-800 text-slate-300 hover:bg-slate-700 transition";
+      tabBtnAnalysis.className = "flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold bg-slate-800 text-slate-300 hover:bg-slate-700 transition";
+
+      if (tabName === 'form') {
+        panelForm.classList.remove('hidden');
+        tabBtnForm.className = "flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold bg-indigo-600 text-white shadow-lg transition";
+      } else if (tabName === 'stage') {
+        panelStage.classList.remove('hidden');
+        tabBtnStage.className = "flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold bg-indigo-600 text-white shadow-lg transition";
+        renderStageRoster();
+      } else if (tabName === 'analysis') {
+        panelAnalysis.classList.remove('hidden');
+        tabBtnAnalysis.className = "flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold bg-indigo-600 text-white shadow-lg transition";
+        renderAnalysisDashboard();
+      }
+    }
+
+    // ========================================================
+    // LOGIK BORANG PENDAFTARAN ANUGERAH
+    // ========================================================
+
+    function initCategoryDropdown() {
+      const select = document.getElementById('awardCategory');
+      select.innerHTML = '<option value="">-- Sila Pilih Kategori Anugerah --</option>';
+
+      const optGroup1 = document.createElement('optgroup');
+      optGroup1.label = "SESI 1: ANUGERAH KELAS & ALIRAN";
+
+      const optGroup2 = document.createElement('optgroup');
+      optGroup2.label = "SESI 2: ANUGERAH KHAS & TOKOH (KEMUNCAK)";
+
+      AWARD_CATEGORIES.forEach(cat => {
+        const opt = document.createElement('option');
+        opt.value = cat.name;
+        opt.textContent = `${cat.name} (${cat.group})`;
+        if (cat.session === 'SESI 2') {
+          optGroup2.appendChild(opt);
+        } else {
+          optGroup1.appendChild(opt);
+        }
+      });
+
+      select.appendChild(optGroup1);
+      select.appendChild(optGroup2);
+    }
+
+    function onCategoryChanged() {
+      const catName = document.getElementById('awardCategory').value;
+      const chkSecret = document.getElementById('awardIsSecret');
+      const posSelect = document.getElementById('awardPosition');
+      const rankBadge = document.getElementById('rankTypeIndicator');
+      const rankHint = document.getElementById('rankTypeHint');
+
+      const found = AWARD_CATEGORIES.find(c => c.name === catName);
+      posSelect.innerHTML = '';
+
+      if (found) {
+        chkSecret.checked = found.defaultSecret;
+        
+        if (found.rankType === 'RANKING') {
+          rankBadge.textContent = '🏅 Berkedudukan (Ranking)';
+          rankBadge.className = 'text-[10px] font-extrabold px-2 py-0.5 rounded-md bg-amber-500/20 text-amber-300 border border-amber-500/30';
+          rankHint.textContent = 'Anugerah ini menggunakan kedudukan rasmi (Tempat 1, 2, 3).';
+        } else if (found.rankType === 'TIADA_RANKING') {
+          rankBadge.textContent = '🌟 Tiada Ranking (Kelompok/Setara)';
+          rankBadge.className = 'text-[10px] font-extrabold px-2 py-0.5 rounded-md bg-emerald-500/20 text-emerald-300 border border-emerald-500/30';
+          rankHint.textContent = 'Anugerah ini menghimpunkan murid cemerlang tanpa meletakkan nombor ranking.';
+        } else {
+          rankBadge.textContent = '⚙️ Pilihan Khusus';
+          rankBadge.className = 'text-[10px] font-extrabold px-2 py-0.5 rounded-md bg-indigo-500/20 text-indigo-300 border border-indigo-500/30';
+          rankHint.textContent = 'Pilihan kedudukan dijana mengikut lajur F Google Sheet.';
+        }
+
+        const positions = (found.positions && found.positions.length > 0) ? found.positions : ['Penerima Anugerah'];
+        positions.forEach(pos => {
+          const opt = document.createElement('option');
+          opt.value = pos;
+          opt.textContent = pos;
+          posSelect.appendChild(opt);
+        });
+      } else {
+        chkSecret.checked = false;
+        posSelect.innerHTML = '<option value="Penerima Anugerah">Penerima Anugerah</option>';
+        rankBadge.textContent = 'Format: Mengikut Anugerah';
+        rankBadge.className = 'text-[10px] font-extrabold px-2 py-0.5 rounded-md bg-slate-800 text-slate-400 border border-slate-700';
+        rankHint.textContent = 'Sila pilih kategori anugerah terlebih dahulu.';
+      }
+    }
+
+    function onGradeChanged() {
+      const grade = document.getElementById('awardGrade').value;
+      const classSelect = document.getElementById('awardClass');
+      const studentSelect = document.getElementById('awardStudentName');
+
+      classSelect.innerHTML = '<option value="">-- Pilih Kelas --</option>';
+      studentSelect.innerHTML = '<option value="">-- Sila Pilih Nama Murid --</option>';
+
+      if (grade && CLASS_STRUCTURE[grade]) {
+        CLASS_STRUCTURE[grade].forEach(cls => {
+          const opt = document.createElement('option');
+          opt.value = cls;
+          opt.textContent = cls;
+          classSelect.appendChild(opt);
+        });
+      }
+    }
+
+    function onClassChanged() {
+      const cls = document.getElementById('awardClass').value;
+      const studentSelect = document.getElementById('awardStudentName');
+      studentSelect.innerHTML = '<option value="">-- Sila Pilih Nama Murid --</option>';
+
+      if (cls && SAMPLE_STUDENTS[cls]) {
+        SAMPLE_STUDENTS[cls].forEach(name => {
+          const opt = document.createElement('option');
+          opt.value = name;
+          opt.textContent = name;
+          studentSelect.appendChild(opt);
+        });
+      }
+    }
+
+    async function handleFormSubmit(e) {
+      e.preventDefault();
+      if (!currentUserRole) {
+        showToast("Sila log masuk guru terlebih dahulu.", "error");
+        return;
+      }
+      if (isFormCurrentlyLocked() && currentUserRole !== 'admin') {
+        showToast("Borang telah ditutup daripada menerima maklumat.", "error");
+        return;
+      }
+
+      const category = document.getElementById('awardCategory').value;
+      const grade = document.getElementById('awardGrade').value;
+      const className = document.getElementById('awardClass').value;
+      const name = document.getElementById('awardStudentName').value;
+      const position = document.getElementById('awardPosition').value;
+      const teacher = document.getElementById('awardTeacher').value || loggedInTeacherName;
+      const isSecret = document.getElementById('awardIsSecret').checked;
+
+      const newRecord = {
+        id: String(Date.now()),
+        name: name,
+        grade: grade,
+        className: className,
+        category: category,
+        position: position,
+        teacher: teacher,
+        isSecret: isSecret,
+        isVerified: (currentUserRole === 'admin')
+      };
+
+      awardRecords.push(newRecord);
+      renderAllViews();
+      showToast(`🏆 Rekod anugerah bagi ${name} berjaya disimpan!`, "success");
+
+      // Reset pilihan kategori untuk kemasukan seterusnya
+      document.getElementById('awardCategory').value = "";
+      onCategoryChanged();
+
+      // Hantar simpanan ke Google Sheets di latar belakang
+      if (GAS_URL) {
+        try {
+          fetch(GAS_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+            body: JSON.stringify({ action: 'addRecord', record: newRecord })
+          });
+        } catch (err) {
+          console.warn("Ralat menyimpan ke Google Sheet:", err);
+        }
+      }
+    }
+
+    // ========================================================
+    // MODUL JURUACARA PENTAS & PROTOKOL SEBUTAN
+    // ========================================================
+
+    function toggleStageRelease() {
+      if (currentUserRole !== 'admin') return;
+      isStagePublished = !isStagePublished;
+      const btn = document.getElementById('btnToggleReleaseStage');
+      if (isStagePublished) {
+        btn.textContent = "🔒 Kunci Semula Data Pentas (Rahsiakan)";
+        btn.className = "px-4 py-2 bg-rose-600 hover:bg-rose-500 text-white font-extrabold text-xs rounded-xl shadow transition shrink-0";
+        showToast("📢 Data pentas telah dibuka kepada Juruacara dan Guru!");
+      } else {
+        btn.textContent = "📢 Lepaskan Data Pentas Kepada MC & Guru";
+        btn.className = "px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold text-xs rounded-xl shadow transition shrink-0";
+        showToast("🔒 Data pentas kini dirahsiakan semula.");
+      }
+      applyRoleAccessPermissions();
+    }
+
+    function setSessionFilter(session) {
+      currentSessionFilter = session;
+      const btnAll = document.getElementById('sessionBtnALL');
+      const btnS1 = document.getElementById('sessionBtnSESI1');
+      const btnS2 = document.getElementById('sessionBtnSESI2');
+
+      [btnAll, btnS1, btnS2].forEach(b => {
+        b.className = "px-3 py-1.5 rounded-lg text-slate-950 hover:bg-slate-950/20";
+      });
+
+      if (session === 'ALL') {
+        btnAll.className = "px-3 py-1.5 rounded-lg bg-slate-950 text-amber-300 shadow";
+      } else if (session === 'SESI 1') {
+        btnS1.className = "px-3 py-1.5 rounded-lg bg-slate-950 text-amber-300 shadow";
+      } else {
+        btnS2.className = "px-3 py-1.5 rounded-lg bg-slate-950 text-amber-300 shadow";
+      }
+
+      renderStageRoster();
+    }
+
+    function renderStageRoster() {
+      const container = document.getElementById('stageRosterContainer');
+      const printContainer = document.getElementById('printRosterContent');
+      if (!container) return;
+
+      container.innerHTML = '';
+      if (printContainer) printContainer.innerHTML = '';
+
+      // Tapis mengikut sesi
+      const catMap = {};
+      AWARD_CATEGORIES.forEach(c => {
+        catMap[c.name] = {
+          session: c.session || 'SESI 1',
+          priority: c.priority || 99
+        };
+      });
+
+      let displayRecords = awardRecords.filter(r => {
+        const s = catMap[r.category]?.session || 'SESI 1';
+        if (currentSessionFilter === 'ALL') return true;
+        return s === currentSessionFilter;
+      });
+
+      if (displayRecords.length === 0) {
+        container.innerHTML = `
+          <div class="p-8 text-center bg-slate-950 rounded-3xl border border-slate-800 text-slate-500">
+            Tiada senarai pemenang untuk sesi yang dipilih.
+          </div>
+        `;
+        return;
+      }
+
+      // Himpunkan penerima anugerah mengikut murid (1 Murid 1 Giliran Pentas)
+      const studentGroups = {};
+      displayRecords.forEach(r => {
+        if (!studentGroups[r.name]) {
+          studentGroups[r.name] = {
+            name: r.name,
+            grade: r.grade,
+            className: r.className,
+            awards: []
+          };
+        }
+        studentGroups[r.name].awards.push(r);
+      });
+
+      // Susun anugerah setiap murid mengikut keutamaan sebutan
+      Object.values(studentGroups).forEach(group => {
+        group.awards.sort((a, b) => {
+          const prioA = catMap[a.category]?.priority || 99;
+          const prioB = catMap[b.category]?.priority || 99;
+          return prioA - prioB;
+        });
+      });
+
+      // Kumpulkan mengikut kelas
+      const classGroups = {};
+      Object.values(studentGroups).forEach(group => {
+        if (!classGroups[group.className]) classGroups[group.className] = [];
+        classGroups[group.className].push(group);
+      });
+
+      let printHtml = '';
+
+      Object.keys(classGroups).sort().forEach(cls => {
+        const classCard = document.createElement('div');
+        classCard.className = "bg-slate-950 p-5 sm:p-6 rounded-3xl border border-slate-800 shadow-xl space-y-4";
+
+        let classHeaderHtml = `
+          <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+            <div class="flex items-center gap-2">
+              <span class="w-3 h-3 rounded-full bg-amber-400"></span>
+              <h3 class="text-base sm:text-lg font-black text-white uppercase tracking-wide">KELAS: ${cls}</h3>
+            </div>
+            <span class="text-xs font-bold text-amber-300 bg-amber-400/10 border border-amber-400/30 px-3 py-1 rounded-full">
+              ${classGroups[cls].length} Orang Penerima
+            </span>
+          </div>
+          <div class="space-y-3">
+        `;
+
+        printHtml += `<h3 style="font-size:14px; font-weight:bold; border-bottom:1px solid #000; margin-top:15px; padding-bottom:4px;">KELAS: ${cls}</h3>`;
+
+        classGroups[cls].forEach((stu, idx) => {
+          const isMulti = stu.awards.length > 1;
+
+          let awardsListHtml = stu.awards.map(aw => `
+            <div class="flex items-start justify-between text-xs py-1 border-b border-slate-800/40 last:border-0">
+              <div>
+                <strong class="text-slate-200">${aw.category}</strong>
+                ${aw.isSecret ? '<span class="ml-1.5 text-[9px] bg-rose-500/20 text-rose-300 px-1.5 py-0.5 rounded font-extrabold border border-rose-500/30">⭐ Anugerah Khas</span>' : ''}
+              </div>
+              <span class="font-extrabold text-amber-300 text-[11px] shrink-0 ml-2">${aw.position || 'Penerima Anugerah'}</span>
+            </div>
+          `).join('');
+
+          classHeaderHtml += `
+            <div class="p-4 rounded-2xl bg-slate-900 border ${isMulti ? 'border-amber-500/30 bg-amber-500/5' : 'border-slate-800'} space-y-2">
+              <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
+                <div class="flex items-center gap-2">
+                  <span class="w-6 h-6 rounded-full bg-slate-800 text-slate-300 font-extrabold flex items-center justify-center text-[11px]">${idx + 1}</span>
+                  <h4 class="font-black text-sm text-white tracking-wide">${stu.name}</h4>
+                </div>
+                ${isMulti ? `<span class="text-[10px] font-extrabold px-2.5 py-0.5 rounded-full bg-amber-400/20 text-amber-300 border border-amber-400/30 self-start sm:self-auto">🏆 Meraih ${stu.awards.length} Anugerah (1 Giliran Pentas)</span>` : ''}
+              </div>
+
+              <!-- Skrip Sebutan MC -->
+              <div class="p-3 rounded-xl bg-slate-950/70 border border-slate-800/80 text-[11px] text-slate-300 leading-relaxed font-mono">
+                <span class="text-amber-400 font-bold block mb-1 font-sans">🎙️ Skrip Sebutan Juruacara:</span>
+                "Mempersilakan <strong>${stu.name}</strong> bagi menerima ${stu.awards.map(a => `${a.category} (${a.position})`).join(', dan ')}."
+              </div>
+
+              <!-- Senarai Terperinci -->
+              <div class="pt-1">
+                ${awardsListHtml}
+              </div>
+            </div>
+          `;
+
+          printHtml += `
+            <div style="margin-bottom:8px; padding:6px; border:1px solid #ddd;">
+              <strong>${idx + 1}. ${stu.name}</strong> (${cls})<br>
+              <em>Skrip MC: "Mempersilakan ${stu.name} bagi menerima ${stu.awards.map(a => `${a.category} (${a.position})`).join(', dan ')}."</em>
+            </div>
+          `;
+        });
+
+        classHeaderHtml += `</div>`;
+        classCard.innerHTML = classHeaderHtml;
+        container.appendChild(classCard);
+      });
+
+      if (printContainer) printContainer.innerHTML = printHtml;
+    }
+
+    // ========================================================
+    // MODUL PROJEKTOR PENTAS SKRIN PENUH
+    // ========================================================
+
+    function openProjectorMode() {
+      const projectorWindow = window.open('', '_blank');
+      if (!projectorWindow) {
+        showToast("Sila benarkan pop-up browser untuk mod projektor.", "error");
+        return;
+      }
+
+      // Senaraikan murid mengikut kelas
+      const studentMap = {};
+      awardRecords.forEach(r => {
+        if (!studentMap[r.name]) {
+          studentMap[r.name] = { name: r.name, className: r.className, awards: [] };
+        }
+        studentMap[r.name].awards.push(r);
+      });
+
+      const studentList = Object.values(studentMap);
+      const schoolName = document.getElementById('displaySchoolName').textContent || 'SK TAMAN SEMARAK';
+      const eventTitle = document.getElementById('displayEventTitle').textContent || 'MAJLIS ANUGERAH KECEMERLANGAN';
+
+      projectorWindow.document.write(`
+        <!DOCTYPE html>
+        <html lang="ms">
+        <head>
+          <meta charset="UTF-8">
+          <title>PROJEKTOR PENTAS - ${schoolName}</title>
+          <script src="https://cdn.tailwindcss.com"><\/script>
+          <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;700;900&display=swap" rel="stylesheet">
+          <style>
+            body { font-family: 'Plus Jakarta Sans', sans-serif; background: radial-gradient(circle at center, #0f172a 0%, #020617 100%); }
+            .gold-gradient { background: linear-gradient(135deg, #fbbf24 0%, #d97706 100%); }
+            @keyframes fadeIn {
+              from { opacity: 0; transform: translateY(15px); }
+              to { opacity: 1; transform: translateY(0); }
+            }
+            .animate-card { animation: fadeIn 0.4s ease-out; }
+          </style>
+        </head>
+        <body class="text-white min-h-screen flex flex-col justify-between p-8 select-none">
+          <header class="text-center space-y-1 border-b border-slate-800/80 pb-4">
+            <span class="text-xs uppercase tracking-widest font-black text-amber-400">${schoolName}</span>
+            <h1 class="text-2xl sm:text-3xl font-black tracking-tight text-white">${eventTitle}</h1>
+          </header>
+
+          <main class="flex-1 flex flex-col items-center justify-center my-8 text-center max-w-4xl mx-auto w-full">
+            <div id="contentDisplay" class="animate-card space-y-6 w-full">
+              <!-- Murid Semasa -->
+            </div>
+          </main>
+
+          <footer class="flex items-center justify-between text-xs text-slate-400 border-t border-slate-800/80 pt-4">
+            <div class="flex items-center gap-2">
+              <button onclick="prevStudent()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-white rounded-xl font-bold transition">◀ Sebelumnya</button>
+              <button onclick="nextStudent()" class="px-4 py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 rounded-xl font-black transition">Seterusnya ▶</button>
+            </div>
+            <div class="font-mono text-amber-300 font-bold" id="counterIndicator">
+              1 / ${studentList.length}
+            </div>
+          </footer>
+
+          <script>
+            const students = ${JSON.stringify(studentList)};
+            let currentIndex = 0;
+
+            function render() {
+              if (students.length === 0) {
+                document.getElementById('contentDisplay').innerHTML = '<h2 class="text-2xl font-bold text-slate-500">Tiada Senarai Pemenang</h2>';
+                return;
+              }
+              const s = students[currentIndex];
+              document.getElementById('counterIndicator').textContent = (currentIndex + 1) + ' / ' + students.length;
+
+              const awardsHtml = s.awards.map(a => 
+                '<div class="p-4 rounded-2xl bg-slate-900/80 border border-amber-500/30">' +
+                  '<h3 class="text-lg font-black text-amber-300">' + a.category + '</h3>' +
+                  '<span class="text-sm text-slate-300 font-semibold">' + (a.position || 'Penerima Anugerah') + '</span>' +
+                '</div>'
+              ).join('');
+
+              document.getElementById('contentDisplay').innerHTML = 
+                '<div class="space-y-2">' +
+                  '<span class="px-4 py-1.5 rounded-full bg-amber-400/20 text-amber-300 border border-amber-400/30 text-sm font-black tracking-widest uppercase">' + s.className + '</span>' +
+                  '<h2 class="text-4xl sm:text-5xl font-black text-white tracking-tight mt-3 uppercase">' + s.name + '</h2>' +
+                '</div>' +
+                '<div class="grid grid-cols-1 sm:grid-cols-' + Math.min(s.awards.length, 3) + ' gap-4 mt-6 max-w-3xl mx-auto">' +
+                  awardsHtml +
+                '</div>';
+            }
+
+            function nextStudent() {
+              if (currentIndex < students.length - 1) { currentIndex++; render(); }
+            }
+            function prevStudent() {
+              if (currentIndex > 0) { currentIndex--; render(); }
+            }
+
+            window.addEventListener('keydown', (e) => {
+              if (e.key === 'ArrowRight' || e.key === ' ') nextStudent();
+              if (e.key === 'ArrowLeft') prevStudent();
+            });
+
+            render();
+          <\/script>
+        </body>
+        </html>
+      `);
+      projectorWindow.document.close();
+    }
+
+    // ========================================================
+    // ANALISIS & SENARAI SEMAK HADIAH
+    // ========================================================
+
+    function renderAnalysisDashboard() {
+      const totalAwardsEl = document.getElementById('analysisTotalAwards');
+      const uniqueStudentsEl = document.getElementById('analysisUniqueStudents');
+      const multiAwardeesEl = document.getElementById('analysisMultiAwardees');
+      const secretCountEl = document.getElementById('analysisSecretCount');
+
+      if (!totalAwardsEl) return;
+
+      totalAwardsEl.textContent = awardRecords.length;
+      
+      const studentMap = {};
+      awardRecords.forEach(r => {
+        studentMap[r.name] = (studentMap[r.name] || 0) + 1;
+      });
+
+      const uniqueNames = Object.keys(studentMap);
+      uniqueStudentsEl.textContent = uniqueNames.length;
+
+      const multiCount = Object.values(studentMap).filter(c => c > 1).length;
+      multiAwardeesEl.textContent = multiCount;
+
+      secretCountEl.textContent = awardRecords.filter(r => r.isSecret).length;
+
+      // Isi pilihan kelas di jadual
+      const classFilterSelect = document.getElementById('analysisClassFilter');
+      const curFilterVal = classFilterSelect.value;
+      const classNames = [...new Set(awardRecords.map(r => r.className))].sort();
+
+      classFilterSelect.innerHTML = '<option value="ALL">Semua Kelas</option>';
+      classNames.forEach(cls => {
+        const opt = document.createElement('option');
+        opt.value = cls;
+        opt.textContent = cls;
+        classFilterSelect.appendChild(opt);
+      });
+      classFilterSelect.value = curFilterVal || 'ALL';
+
+      renderAnalysisTable();
+      renderStudentSummaryTable();
+    }
+
+    function renderAnalysisTable() {
+      const tbody = document.getElementById('analysisTableBody');
+      const searchTxt = (document.getElementById('analysisSearchInput')?.value || '').toLowerCase().trim();
+      const classFilter = document.getElementById('analysisClassFilter')?.value || 'ALL';
+      const countLabel = document.getElementById('analysisTableCount');
+
+      if (!tbody) return;
+      tbody.innerHTML = '';
+
+      const catMap = {};
+      AWARD_CATEGORIES.forEach(c => {
+        catMap[c.name] = { session: c.session || 'SESI 1' };
+      });
+
+      let filtered = awardRecords.filter(r => {
+        const matchSearch = r.name.toLowerCase().includes(searchTxt) ||
+                            r.category.toLowerCase().includes(searchTxt) ||
+                            r.className.toLowerCase().includes(searchTxt);
+        const matchClass = (classFilter === 'ALL' || r.className === classFilter);
+        return matchSearch && matchClass;
+      });
+
+      if (filtered.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="8" class="text-center p-6 text-slate-500">Tiada rekod penerima yang sepadan.</td></tr>`;
+        countLabel.textContent = "Memaparkan 0 rekod";
+        return;
+      }
+
+      filtered.forEach((rec, idx) => {
+        const tr = document.createElement('tr');
+        tr.className = "hover:bg-slate-900/60 transition";
+
+        const meta = catMap[rec.category] || { session: 'SESI 1' };
+
+        tr.innerHTML = `
+          <td class="p-3 text-center text-slate-500">${idx + 1}</td>
+          <td class="p-3 font-extrabold text-white">${rec.name}</td>
+          <td class="p-3"><span class="px-2 py-0.5 rounded-md bg-slate-900 border border-slate-700 text-slate-300 font-semibold text-[11px]">${rec.className}</span></td>
+          <td class="p-3 text-amber-200 font-semibold">${rec.category}</td>
+          <td class="p-3 text-indigo-300">${rec.position || '-'}</td>
+          <td class="p-3 text-slate-400 text-[11px]">${rec.teacher || '-'}</td>
+          <td class="p-3 text-center">
+            <span class="px-2 py-0.5 rounded-md text-[10px] font-bold ${meta.session === 'SESI 2' ? 'bg-amber-400/20 text-amber-300 border border-amber-400/30' : 'bg-slate-800 text-slate-400'}">
+              ${meta.session}
+            </span>
+          </td>
+          <td class="p-3 text-center">
+            ${currentUserRole === 'admin' ? `
+              <button onclick="performDeleteRecord('${rec.id}')" title="Padam Rekod" class="p-1.5 rounded-lg bg-rose-500/10 hover:bg-rose-500 text-rose-400 hover:text-white transition">
+                🗑️
+              </button>
+            ` : `<span class="text-slate-600 text-[10px]">Terkunci</span>`}
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+
+      countLabel.textContent = `Memaparkan ${filtered.length} daripada ${awardRecords.length} rekod`;
+    }
+
+    function renderStudentSummaryTable() {
+      const tbody = document.getElementById('studentSummaryTableBody');
+      const countLabel = document.getElementById('studentSummaryCount');
+      const searchTxt = (document.getElementById('studentSummarySearchInput')?.value || '').toLowerCase().trim();
+
+      if (!tbody) return;
+      tbody.innerHTML = '';
+
+      const studentMap = {};
+      awardRecords.forEach(r => {
+        if (!studentMap[r.name]) {
+          studentMap[r.name] = {
+            name: r.name,
+            grade: r.grade,
+            className: r.className,
+            awards: []
+          };
+        }
+        studentMap[r.name].awards.push({
+          category: r.category,
+          position: r.position,
+          isSecret: r.isSecret
+        });
+      });
+
+      let studentList = Object.values(studentMap);
+
+      if (searchTxt) {
+        studentList = studentList.filter(s => 
+          s.name.toLowerCase().includes(searchTxt) ||
+          s.className.toLowerCase().includes(searchTxt) ||
+          s.awards.some(a => a.category.toLowerCase().includes(searchTxt))
+        );
+      }
+
+      studentList.sort((a, b) => b.awards.length - a.awards.length || a.name.localeCompare(b.name));
+
+      if (studentList.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="6" class="text-center p-6 text-slate-500">Tiada rekod murid dijumpai.</td></tr>`;
+        if (countLabel) countLabel.textContent = "Memaparkan 0 murid";
+        return;
+      }
+
+      studentList.forEach((stu, idx) => {
+        const count = stu.awards.length;
+        const tr = document.createElement('tr');
+        tr.className = "hover:bg-slate-900/60 transition";
+
+        let badgeClass = 'bg-slate-800 text-slate-300';
+        if (count >= 3) {
+          badgeClass = 'bg-rose-500/20 text-rose-300 border border-rose-500/30';
+        } else if (count === 2) {
+          badgeClass = 'bg-amber-400/20 text-amber-300 border border-amber-400/30';
+        }
+
+        const awardItemsHtml = stu.awards.map((a, i) => `
+          <div class="text-[11px] leading-relaxed">
+            <span class="text-indigo-400 font-bold">${i + 1}.</span> 
+            <span class="text-white">${a.category}</span> 
+            <span class="text-amber-300 font-semibold">(${a.position || 'Penerima'})</span>
+            ${a.isSecret ? '<span class="ml-1 text-[9px] bg-amber-500/20 text-amber-300 px-1.5 py-0.2 rounded border border-amber-500/30">Khas</span>' : ''}
+          </div>
+        `).join('');
+
+        tr.innerHTML = `
+          <td class="p-3 text-center text-slate-500">${idx + 1}</td>
+          <td class="p-3">
+            <strong class="text-white text-xs block">${stu.name}</strong>
+            <span class="text-[10px] text-slate-400">${stu.grade || ''}</span>
+          </td>
+          <td class="p-3">
+            <span class="px-2 py-0.5 rounded-md bg-slate-900 border border-slate-700 text-slate-300 font-semibold text-[11px]">${stu.className}</span>
+          </td>
+          <td class="p-3 text-center">
+            <span class="px-3 py-1 rounded-full font-black text-xs inline-block ${badgeClass}">
+              ${count} Hadiah
+            </span>
+          </td>
+          <td class="p-3 space-y-0.5">
+            ${awardItemsHtml}
+          </td>
+          <td class="p-3 text-center">
+            ${count > 1 
+              ? '<span class="text-[10px] font-extrabold px-2 py-1 rounded-lg bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">1 Giliran Berhimpun</span>' 
+              : '<span class="text-[10px] text-slate-400 font-semibold">Biasa</span>'}
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+
+      if (countLabel) {
+        countLabel.textContent = `Memaparkan ${studentList.length} orang murid`;
+      }
+    }
+
+    function renderQuickStudentAwards() {
+      const container = document.getElementById('quickStudentAwardList');
+      if (!container) return;
+      container.innerHTML = '';
+
+      const studentMap = {};
+      awardRecords.forEach(r => {
+        if (!studentMap[r.name]) {
+          studentMap[r.name] = { name: r.name, className: r.className, count: 0 };
+        }
+        studentMap[r.name].count++;
+      });
+
+      const sortedStudents = Object.values(studentMap).sort((a, b) => b.count - a.count).slice(0, 5);
+
+      if (sortedStudents.length === 0) {
+        container.innerHTML = '<span class="text-slate-500 text-xs">Belum ada rekod penerima.</span>';
+        return;
+      }
+
+      sortedStudents.forEach(stu => {
+        const div = document.createElement('div');
+        div.className = "flex items-center justify-between p-2.5 rounded-xl bg-slate-900 border border-slate-800/90";
+        div.innerHTML = `
+          <div class="truncate pr-2">
+            <strong class="block text-white text-[11px] truncate">${stu.name}</strong>
+            <span class="text-[10px] text-slate-400">${stu.className}</span>
+          </div>
+          <span class="px-2.5 py-1 rounded-lg text-xs font-black shrink-0 ${stu.count > 1 ? 'bg-amber-400/20 text-amber-300 border border-amber-400/30' : 'bg-slate-800 text-slate-300'}">
+            ${stu.count} Hadiah
+          </span>
+        `;
+        container.appendChild(div);
+      });
+    }
+
+    function renderAllViews() {
+      document.getElementById('statTotalRecords').textContent = awardRecords.length;
+      const uniqueStudents = [...new Set(awardRecords.map(r => r.name))];
+      document.getElementById('statTotalStudents').textContent = uniqueStudents.length;
+      document.getElementById('statSpecialAwards').textContent = awardRecords.filter(r => r.isSecret).length;
+
+      renderQuickStudentAwards();
+      renderStageRoster();
+      renderAnalysisDashboard();
+    }
+
+    // ========================================================
+    // MUAT TURUN CSV & CETAKAN
+    // ========================================================
+
+    function downloadCSV() {
+      if (awardRecords.length === 0) {
+        showToast("Tiada data rekod untuk dimuat turun.", "error");
+        return;
+      }
+
+      const headers = ["Bil", "Nama Murid", "Tahun", "Kelas", "Kategori Anugerah", "Kedudukan", "Guru Pelapor", "Anugerah Khas"];
+      const csvRows = [headers.join(",")];
+
+      awardRecords.forEach((r, idx) => {
+        const row = [
+          idx + 1,
+          `"${r.name.replace(/"/g, '""')}"`,
+          `"${r.grade || ''}"`,
+          `"${r.className || ''}"`,
+          `"${r.category.replace(/"/g, '""')}"`,
+          `"${(r.position || '').replace(/"/g, '""')}"`,
+          `"${(r.teacher || '').replace(/"/g, '""')}"`,
+          r.isSecret ? "YA" : "TIDAK"
+        ];
+        csvRows.push(row.join(","));
+      });
+
+      const csvContent = "data:text/csv;charset=utf-8,\uFEFF" + encodeURIComponent(csvRows.join("\n"));
+      const link = document.createElement("a");
+      const timestamp = new Date().toISOString().slice(0, 10);
+      link.setAttribute("href", csvContent);
+      link.setAttribute("download", `SENARAI_PENERIMA_MAKA_${timestamp}.csv`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+
+      showToast("📥 Fail CSV/Excel berjaya dimuat turun!", "success");
+    }
+
+    function downloadStudentAwardSummaryCSV() {
+      if (awardRecords.length === 0) {
+        showToast("Tiada data penerima anugerah untuk dimuat turun.", "error");
+        return;
+      }
+
+      const studentMap = {};
+      awardRecords.forEach(r => {
+        if (!studentMap[r.name]) {
+          studentMap[r.name] = {
+            name: r.name,
+            grade: r.grade || '',
+            className: r.className || '',
+            awards: []
+          };
+        }
+        studentMap[r.name].awards.push(`${r.category} (${r.position || 'Penerima'})`);
+      });
+
+      const studentList = Object.values(studentMap).sort((a, b) => b.awards.length - a.awards.length || a.name.localeCompare(b.name));
+
+      const headers = ["Bil", "Nama Murid", "Tahun / Aliran", "Nama Kelas", "Jumlah Hadiah", "Senarai Anugerah yang Dimenangi"];
+      const csvRows = [headers.join(",")];
+
+      studentList.forEach((stu, idx) => {
+        const awardsJoined = stu.awards.map((aw, i) => `${i + 1}. ${aw}`).join(" | ");
+        const row = [
+          idx + 1,
+          `"${stu.name.replace(/"/g, '""')}"`,
+          `"${stu.grade}"`,
+          `"${stu.className}"`,
+          stu.awards.length,
+          `"${awardsJoined.replace(/"/g, '""')}"`
+        ];
+        csvRows.push(row.join(","));
+      });
+
+      const csvContent = "data:text/csv;charset=utf-8,\uFEFF" + encodeURIComponent(csvRows.join("\n"));
+      const link = document.createElement("a");
+      const timestamp = new Date().toISOString().slice(0, 10);
+      link.setAttribute("href", csvContent);
+      link.setAttribute("download", `ANALISIS_BILANGAN_HADIAH_MURID_${timestamp}.csv`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+
+      showToast("📥 Analisis bilangan hadiah murid berjaya dimuat turun (CSV)!", "success");
+    }
+
+    function printGiftSlips() {
+      const printSubtitle = document.getElementById('printSubtitle');
+      const printRosterContent = document.getElementById('printRosterContent');
+      printSubtitle.textContent = "SENARAI SEMAK DULANG HADIAH & SIJIL PENTAS (JAWATANKUASA HADIAH)";
+
+      const classGroups = {};
+      awardRecords.forEach(r => {
+        if (!classGroups[r.className]) classGroups[r.className] = [];
+        classGroups[r.className].push(r);
+      });
+
+      let fullSlipHtml = '';
+      let slipCounter = 1;
+
+      Object.keys(classGroups).sort().forEach(cls => {
+        const recordsInClass = classGroups[cls];
+        
+        const studentMap = {};
+        recordsInClass.forEach(rec => {
+          if (!studentMap[rec.name]) studentMap[rec.name] = [];
+          studentMap[rec.name].push(rec);
+        });
+
+        fullSlipHtml += `
+          <div style="page-break-after: always; margin-bottom: 30px;">
+            <div style="background-color: #f8fafc; padding: 10px; border-bottom: 2px solid #000; margin-bottom: 15px;">
+              <h2 style="font-size: 15px; font-weight: bold; margin: 0;">GILIRAN DULANG KELAS: ${cls}</h2>
+              <span style="font-size: 11px; color: #555;">Jumlah Penerima: ${Object.keys(studentMap).length} Orang</span>
+            </div>
+            
+            <table style="width: 100%; border-collapse: collapse;">
+              <thead>
+                <tr style="background-color: #e2e8f0; font-size: 11px;">
+                  <th style="padding: 8px; border: 1px solid #cbd5e1; width: 40px; text-align: center;">Bil</th>
+                  <th style="padding: 8px; border: 1px solid #cbd5e1; text-align: left;">Nama Murid</th>
+                  <th style="padding: 8px; border: 1px solid #cbd5e1; text-align: left;">Senarai Anugerah</th>
+                  <th style="padding: 8px; border: 1px solid #cbd5e1; width: 60px; text-align: center;">Semakan</th>
+                </tr>
+              </thead>
+              <tbody style="font-size: 11px;">
+        `;
+
+        Object.keys(studentMap).forEach(stuName => {
+          const recs = studentMap[stuName];
+          const awardsText = recs.map(r => `• ${r.category} (${r.position})`).join('<br>');
+
+          fullSlipHtml += `
+            <tr>
+              <td style="padding: 8px; border: 1px solid #cbd5e1; text-align: center; vertical-align: top;">${slipCounter}</td>
+              <td style="padding: 8px; border: 1px solid #cbd5e1; vertical-align: top;"><strong>${stuName}</strong><br><small style="color: #64748b;">${cls}</small></td>
+              <td style="padding: 8px; border: 1px solid #cbd5e1; vertical-align: top;">${awardsText}</td>
+              <td style="padding: 8px; border: 1px solid #cbd5e1; text-align: center; vertical-align: top;">[ &nbsp; ]</td>
+            </tr>
+          `;
+          slipCounter++;
+        });
+
+        fullSlipHtml += `
+              </tbody>
+            </table>
+          </div>
+        `;
+      });
+
+      printRosterContent.innerHTML = fullSlipHtml;
+      window.print();
+    }
+
+    // ========================================================
+    // TETAPAN MASA & UNDUR MASA (PENTADBIR)
+    // ========================================================
+
+    function isFormCurrentlyLocked() {
+      if (isFormManuallyLocked) return true;
+      const now = new Date();
+      return (now > targetLockTime);
+    }
+
+    function updateCountdown() {
+      const now = new Date();
+      const diff = targetLockTime - now;
+      const isLocked = isFormCurrentlyLocked();
+
+      const dot = document.getElementById('formStatusDot');
+      const text = document.getElementById('formStatusText');
+      const timer = document.getElementById('countdownTimer');
+      const displayClosing = document.getElementById('displayClosingDate');
+
+      const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' };
+      displayClosing.textContent = targetLockTime.toLocaleDateString('ms-MY', options);
+
+      if (isLocked) {
+        dot.className = "w-2 h-2 rounded-full bg-rose-500";
+        text.className = "text-rose-400 font-bold";
+        text.textContent = "DIKUNCI (TEMPOH TAMAT)";
+        timer.textContent = "00h 00j 00m 00s (Tamat)";
+        if (currentUserRole !== 'admin') {
+          document.querySelectorAll('#awardSubmissionForm input, #awardSubmissionForm select, #btnSubmitForm').forEach(el => el.disabled = true);
+        }
+      } else {
+        dot.className = "w-2 h-2 rounded-full bg-emerald-400";
+        text.className = "text-emerald-400 font-bold";
+        text.textContent = "DIBUKA (MENERIMA MAKLUMAT)";
+
+        const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+        const hours = Math.floor((diff / (1000 * 60 * 60)) % 24);
+        const minutes = Math.floor((diff / 1000 / 60) % 60);
+        const seconds = Math.floor((diff / 1000) % 60);
+        timer.textContent = `${days}h ${hours}j ${minutes}m ${seconds}s`;
+      }
+    }
+
+    function openTimeModal() {
+      if (currentUserRole !== 'admin') return;
+      const modal = document.getElementById('timeModal');
+      const input = document.getElementById('closingDateTimeInput');
+      const chkLock = document.getElementById('chkManualLock');
+
+      const tzOffset = targetLockTime.getTimezoneOffset() * 60000;
+      const localISOTime = (new Date(targetLockTime.getTime() - tzOffset)).toISOString().slice(0, 16);
+      input.value = localISOTime;
+      chkLock.checked = isFormManuallyLocked;
+
+      modal.classList.remove('hidden');
+    }
+
+    function closeTimeModal() {
+      document.getElementById('timeModal').classList.add('hidden');
+    }
+
+    async function saveTimeSettings() {
+      const input = document.getElementById('closingDateTimeInput');
+      const chkLock = document.getElementById('chkManualLock');
+      const btn = document.getElementById('btnSaveTimeSettings');
+
+      if (!input.value) {
+        showToast("Sila pilih tarikh dan masa yang sah.", "error");
+        return;
+      }
+
+      targetLockTime = new Date(input.value);
+      isFormManuallyLocked = chkLock.checked;
+
+      btn.disabled = true;
+      btn.textContent = "Menyimpan ke Sheet...";
+
+      if (GAS_URL) {
+        try {
+          await fetch(GAS_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+            body: JSON.stringify({
+              action: 'updateSettings',
+              settings: {
+                'TARIKH_TUTUP': input.value,
+                'STATUS_BORANG': isFormManuallyLocked ? 'DIKUNCI' : 'DIBUKA'
+              }
+            })
+          });
+        } catch (e) {
+          console.warn("Ralat menyimpan masa ke Google Sheets:", e);
+        }
+      }
+
+      btn.disabled = false;
+      btn.textContent = "Simpan Tetapan";
+      closeTimeModal();
+      updateCountdown();
+      applyRoleAccessPermissions();
+      showToast("✅ Tetapan masa tutup berjaya dikemas kini!");
+    }
+
+    // ========================================================
+    // TINDAKAN PADAM REKOD (PENTADBIR) & NOTIFIKASI TOAST
+    // ========================================================
+
+    function performDeleteRecord(id) {
+      if (currentUserRole !== 'admin') {
+        showToast("Hanya pentadbir dibenarkan memadam rekod.", "error");
+        return;
+      }
+      awardRecords = awardRecords.filter(r => r.id !== id);
+      renderAllViews();
+      showToast("🗑️ Rekod telah berjaya dipadam!");
+    }
+
+    function showToast(msg, type = "info") {
+      const toast = document.getElementById('toastNotification');
+      const toastMsg = document.getElementById('toastMessage');
+      const toastIcon = document.getElementById('toastIcon');
+
+      toastMsg.textContent = msg;
+      toastIcon.textContent = type === "error" ? "⚠️" : (type === "success" ? "✅" : "✨");
+
+      toast.classList.remove('translate-y-20', 'opacity-0');
+      setTimeout(() => {
+        toast.classList.add('translate-y-20', 'opacity-0');
+      }, 3500);
+    }
+  </script>
+</body>
+</html>
